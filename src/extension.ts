@@ -6,7 +6,7 @@ class MyUriHandler implements vscode.UriHandler {
   // with your extension id as the authority.
 
   // vscode://tylerasa.talaria-server?file=app.tsx&line=30
-  handleUri(uri: vscode.Uri): vscode.ProviderResult<void> {
+  async handleUri(uri: vscode.Uri):  Promise<void> {
     let message = "Handled a Uri!";
     if (uri.query) {
       const params = new URLSearchParams(uri.query);
@@ -16,6 +16,13 @@ class MyUriHandler implements vscode.UriHandler {
       console.log("File:", fileValue);
       console.log("Line:", lineValue);
       message += ` It came with this file: ${fileValue} and line: ${lineValue}`;
+
+      if (fileValue && lineValue) {
+        const filePath = vscode.Uri.parse(`file://${fileValue}`);
+        
+        const document = await vscode.workspace.openTextDocument(filePath);
+        await vscode.window.showTextDocument(document, { selection: new vscode.Range(parseInt(lineValue) - 1, 0, parseInt(lineValue) - 1, 0) });
+      }
     }
     vscode.window.showInformationMessage(message);
   }
