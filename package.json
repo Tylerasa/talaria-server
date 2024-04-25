@@ -1,8 +1,11 @@
 {
   "name": "talaria-server",
-  "publisher": "tylerasa",
-  "displayName": "talaria-server",
+  "publisher": "sylvestersarpong",
+  "displayName": "Talaria Server",
   "description": "server for the talaria-client",
+  "repository": {
+    "url": "https://github.com/Tylerasa/talaria-server"
+  },
   "version": "0.0.1",
   "engines": {
     "vscode": "^1.87.0"
