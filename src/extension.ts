@@ -2,6 +2,7 @@ import * as vscode from "vscode";
 import * as path from "path";
 
 let isActivated = false;
+let uriHandler: MyUriHandler | undefined;
 
 class MyUriHandler implements vscode.UriHandler {
   async handleUri(uri: vscode.Uri): Promise<void> {
@@ -11,10 +12,6 @@ class MyUriHandler implements vscode.UriHandler {
       const fileValue = params.get("file");
       const lineValue = params.get("line");
       const framework = params.get("framework");
-
-      console.log("framework", framework);
-      console.log("lineValue", lineValue);
-      console.log("fileValue", fileValue);
 
       // const relativePath = "/Users/mac/Desktop/talaria-dev/vue-test/src/App.vue"
       const workspaceFolders = vscode.workspace.workspaceFolders;
@@ -51,7 +48,7 @@ class MyUriHandler implements vscode.UriHandler {
 }
 
 export function activate(context: vscode.ExtensionContext) {
-  const disposable = vscode.commands.registerCommand(
+  const startCommand = vscode.commands.registerCommand(
     "talaria-server.start",
     async () => {
       if (isActivated) {
@@ -60,7 +57,7 @@ export function activate(context: vscode.ExtensionContext) {
         );
         return;
       }
-      const uriHandler = new MyUriHandler();
+      uriHandler = new MyUriHandler();
 
       context.subscriptions.push(vscode.window.registerUriHandler(uriHandler));
 
@@ -77,7 +74,53 @@ export function activate(context: vscode.ExtensionContext) {
     }
   );
 
-  context.subscriptions.push(disposable);
+  const stopCommand = vscode.commands.registerCommand(
+    "talaria-server.stop",
+    () => {
+      if (!isActivated) {
+        vscode.window.showInformationMessage(
+          "Talaria server is not currently activated."
+        );
+        return;
+      }
+
+      if (uriHandler) {
+        uriHandler = undefined;
+      }
+
+      isActivated = false;
+      vscode.window.showInformationMessage("Talaria server has been stopped.");
+    }
+  );
+
+  const restartCommand = vscode.commands.registerCommand(
+    "talaria-server.restart",
+    async () => {
+      if (isActivated) {
+        if (uriHandler) {
+          uriHandler = undefined;
+        }
+        isActivated = false;
+      }
+
+      uriHandler = new MyUriHandler();
+
+      context.subscriptions.push(vscode.window.registerUriHandler(uriHandler));
+
+      await vscode.env.asExternalUri(
+        vscode.Uri.parse(
+          `${vscode.env.uriScheme}://sylvestersarpong.talaria-server`
+        )
+      );
+      vscode.window.showInformationMessage(
+        `Restarting the Talaria Server, ready to handle requests.`
+      );
+
+      isActivated = true;
+    }
+  );
+
+  context.subscriptions.push(startCommand, stopCommand, restartCommand);
 }
 
 async function openFile(file: string | null, line: string | null) {
