@@ -1,3 +1,0 @@
-- get the file name open it.
-- get line number and point to that line.
--  highlight the line
