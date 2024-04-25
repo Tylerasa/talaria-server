@@ -19,7 +19,6 @@ class MyUriHandler implements vscode.UriHandler {
       if (workspaceFolders) {
         for (const folder of workspaceFolders) {
           if (framework === "vue") {
-            console.log("fileValue ==>", fileValue);
 
             openFile(fileValue, lineValue);
           } else {
