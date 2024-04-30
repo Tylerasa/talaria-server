@@ -13,22 +13,12 @@ class MyUriHandler implements vscode.UriHandler {
       const lineValue = params.get("line");
       const framework = params.get("framework");
 
-      console.log("lineValue", lineValue);
-      if(lineValue){
-        console.log("yes", );
-        
-      }else{
-        console.log("no", );
-
-      }
-      
       // const relativePath = "/Users/mac/Desktop/talaria-dev/vue-test/src/App.vue"
       const workspaceFolders = vscode.workspace.workspaceFolders;
 
       if (workspaceFolders) {
         for (const folder of workspaceFolders) {
           if (framework === "vue") {
-
             openFile(fileValue, lineValue);
           } else {
             const folderPath = folder.uri.fsPath;
@@ -56,31 +46,35 @@ class MyUriHandler implements vscode.UriHandler {
 }
 
 export function activate(context: vscode.ExtensionContext) {
+  const startServer = async () => {
+    if (isActivated) {
+      vscode.window.showInformationMessage(
+        "Talaria server is already activated."
+      );
+      return;
+    }
+    uriHandler = new MyUriHandler();
+
+    context.subscriptions.push(vscode.window.registerUriHandler(uriHandler));
+
+    await vscode.env.asExternalUri(
+      vscode.Uri.parse(
+        `${vscode.env.uriScheme}://sylvestersarpong.talaria-server`
+      )
+    );
+    vscode.window.showInformationMessage(
+      `Talaria server ready to handle requests.`
+    );
+
+    isActivated = true;
+  };
+
   const startCommand = vscode.commands.registerCommand(
     "talaria-server.start",
-    async () => {
-      if (isActivated) {
-        vscode.window.showInformationMessage(
-          "Talaria server is already activated."
-        );
-        return;
-      }
-      uriHandler = new MyUriHandler();
-
-      context.subscriptions.push(vscode.window.registerUriHandler(uriHandler));
-
-      await vscode.env.asExternalUri(
-        vscode.Uri.parse(
-          `${vscode.env.uriScheme}://sylvestersarpong.talaria-server`
-        )
-      );
-      vscode.window.showInformationMessage(
-        `Talaria server ready to handle requests.`
-      );
-
-      isActivated = true;
-    }
+    startServer
   );
+
+  startServer();
 
   const stopCommand = vscode.commands.registerCommand(
     "talaria-server.stop",
@@ -153,7 +147,12 @@ async function openFile(file: string | null, line: string | null) {
 
     if (line && !isNaN(parseInt(line))) {
       await vscode.window.showTextDocument(document, {
-        selection: new vscode.Range(parseInt(line) - 1, 0, parseInt(line) - 1, 0),
+        selection: new vscode.Range(
+          parseInt(line) - 1,
+          0,
+          parseInt(line) - 1,
+          0
+        ),
       });
     } else {
       await vscode.window.showTextDocument(document);
