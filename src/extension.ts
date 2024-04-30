@@ -13,6 +13,15 @@ class MyUriHandler implements vscode.UriHandler {
       const lineValue = params.get("line");
       const framework = params.get("framework");
 
+      console.log("lineValue", lineValue);
+      if(lineValue){
+        console.log("yes", );
+        
+      }else{
+        console.log("no", );
+
+      }
+      
       // const relativePath = "/Users/mac/Desktop/talaria-dev/vue-test/src/App.vue"
       const workspaceFolders = vscode.workspace.workspaceFolders;
 
@@ -122,16 +131,32 @@ export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(startCommand, stopCommand, restartCommand);
 }
 
+// async function openFile(file: string | null, line: string | null) {
+//   if (file && line) {
+//     const filePath = vscode.Uri.parse(`file://${file}`);
+//     console.log("filePath", filePath);
+//     console.log("file", file);
+//     console.log("line", line);
+
+//     const document = await vscode.workspace.openTextDocument(filePath);
+//     await vscode.window.showTextDocument(document, {
+//       selection: new vscode.Range(parseInt(line) - 1, 0, parseInt(line) - 1, 0),
+//     });
+//   }
+// }
+
 async function openFile(file: string | null, line: string | null) {
-  if (file && line) {
+  if (file) {
     const filePath = vscode.Uri.parse(`file://${file}`);
-    console.log("filePath", filePath);
-    console.log("file", file);
-    console.log("line", line);
 
     const document = await vscode.workspace.openTextDocument(filePath);
-    await vscode.window.showTextDocument(document, {
-      selection: new vscode.Range(parseInt(line) - 1, 0, parseInt(line) - 1, 0),
-    });
+
+    if (line && !isNaN(parseInt(line))) {
+      await vscode.window.showTextDocument(document, {
+        selection: new vscode.Range(parseInt(line) - 1, 0, parseInt(line) - 1, 0),
+      });
+    } else {
+      await vscode.window.showTextDocument(document);
+    }
   }
 }
