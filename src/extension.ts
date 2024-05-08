@@ -21,23 +21,33 @@ class MyUriHandler implements vscode.UriHandler {
           if (framework === "vue") {
             openFile(fileValue, lineValue);
           } else {
-            const folderPath = folder.uri.fsPath;
-            const filePath = path.join(folderPath, fileValue ?? "");
-            const fileUri = vscode.Uri.file(filePath);
-            console.log("fileUri", fileUri);
-            console.log("filePath", filePath);
-
+            const pattern = new vscode.RelativePattern(folder, `**/${fileValue}`);
+            
             try {
-              await vscode.workspace.fs.stat(fileUri);
-              // vscode.window.showTextDocument(fileUri);
-              openFile(fileUri.path, lineValue);
-              return;
+              const files = await vscode.workspace.findFiles(pattern, null, 1);
+              if (files.length > 0) {
+                const fileUri = files[0];
+                console.log("fileUri", fileUri);
+                console.log("filePath", fileUri.fsPath);
+    
+                await vscode.workspace.fs.stat(fileUri); 
+                openFile(fileUri.fsPath, lineValue);
+                return;
+              } else {
+                console.log("File not found: ", fileValue);
+              }
             } catch (err) {
-              // File not found, continue to the next workspace folder
+              console.log("Error accessing file: ", err);
             }
           }
         }
       }
+
+
+
+
+
+
 
       message += `Redirecting file:${fileValue} to line number: ${lineValue}`;
     }
@@ -142,6 +152,8 @@ export function activate(context: vscode.ExtensionContext) {
 async function openFile(file: string | null, line: string | null) {
   if (file) {
     const filePath = vscode.Uri.parse(`file://${file}`);
+    console.log("opening", filePath);
+    
 
     const document = await vscode.workspace.openTextDocument(filePath);
 
